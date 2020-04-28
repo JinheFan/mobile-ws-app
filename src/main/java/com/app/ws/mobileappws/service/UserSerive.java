@@ -16,5 +16,9 @@ public interface UserSerive extends UserDetailsService {
     UserDto updateUser(String userId, UserDto userDto);
 
     void deleteUser(String userId);
+
+    UserDto QueryUserEntityByUserId(String userId);
+
+    List<UserDto> getPage(int page, int limit);
 }
 

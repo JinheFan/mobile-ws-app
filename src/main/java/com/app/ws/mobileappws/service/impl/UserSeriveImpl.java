@@ -5,12 +5,15 @@ import com.app.ws.mobileappws.data.UserEntity;
 import com.app.ws.mobileappws.exception.ErrorMessage;
 import com.app.ws.mobileappws.exception.UserServiceException;
 import com.app.ws.mobileappws.repository.UserRepository;
+import com.app.ws.mobileappws.security.UserPrincipal;
 import com.app.ws.mobileappws.service.UserSerive;
 import com.app.ws.mobileappws.shared.AddressDto;
 import com.app.ws.mobileappws.shared.UserDto;
 import com.app.ws.mobileappws.shared.Utils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -50,8 +53,10 @@ public class UserSeriveImpl implements UserSerive {
         //UserEnity set List<AddressEntity>
         List<AddressDto> addressDtoList = userDto.getAddressDtoList();
         List<AddressEntity> addressEntityList = addressDtoList.stream().map(addressDto -> modelMapper.map(addressDto, AddressEntity.class)).collect(Collectors.toList());
-        for(AddressEntity addressEntity : addressEntityList) {
-            addressEntity.setUserEntity(userEntity);
+        for(int i = 0; i < addressEntityList.size(); i++) {
+            String addressId = utils.generateAddressId(10);
+            addressEntityList.get(i).setAddressId(addressId);
+            addressEntityList.get(i).setUserEntity(userEntity);
         }
         userEntity.setAddresses(addressEntityList);
 
@@ -100,6 +105,23 @@ public class UserSeriveImpl implements UserSerive {
         userRepository.delete(userEntity);
     }
 
+    @Override
+    public UserDto QueryUserEntityByUserId(String userId) {
+        UserEntity userEntity = userRepository.QueryUserEntityByUserId(userId);
+        ModelMapper modelMapper = new ModelMapper();
+        UserDto userDto = modelMapper.map(userEntity, UserDto.class);
+        return userDto;
+    }
+
+    @Override
+    public List<UserDto> getPage(int page, int limit) {
+        Pageable pageable = PageRequest.of(page, limit);
+        List<UserEntity> userEntityList = userRepository.getPage(pageable);
+        ModelMapper modelMapper = new ModelMapper();
+        List<UserDto> userDtoList = userEntityList.stream().map(userEntity -> modelMapper.map(userEntity, UserDto.class)).collect(Collectors.toList());
+        return userDtoList;
+    }
+
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
@@ -107,7 +129,7 @@ public class UserSeriveImpl implements UserSerive {
         if(userEntity == null) {
             throw new UserServiceException(ErrorMessage.NO_RECORD_FOUND.getMessage());
         }
-        return new User(userEntity.getEmail(), userEntity.getEncryptedPassword(), new ArrayList<>());
+        return new UserPrincipal(userEntity);
     }
 }
 

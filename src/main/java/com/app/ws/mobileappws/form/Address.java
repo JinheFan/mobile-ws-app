@@ -7,6 +7,8 @@ public class Address {
 
     private String city;
 
+    private String addressId;
+
     private String country;
 
     private String streetName;

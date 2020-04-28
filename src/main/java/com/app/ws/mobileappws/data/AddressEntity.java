@@ -35,7 +35,7 @@ public class AddressEntity implements Serializable {
     private String type;
 
     @ManyToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", referencedColumnName = "user_id")
     private UserEntity userEntity;
 
 }
